@@ -171,3 +171,393 @@ For example:
     20: run(11, 22); // 22
     21: }
 
+## Applying Access Modifiers
+
+You already saw that there are four access modifiers: public, private, protected, and
+default access. We are going to discuss them in order from most restrictive to least restrictive:
+
+private: Only accessible within the same class
+
+default (package private) access: private and other classes in the same package
+
+protected: default access and child classes
+
+public: protected and classes in the other packages
+
+### Private Access
+
+Private access is easy. Only code in the same class can call private methods or access
+private fields.
+
+    1: package pond.duck;
+    2: public class FatherDuck {
+    3: private String noise = "quack";
+    4: private void quack() {
+    5: System.out.println(noise); // private access is ok
+    6: }
+    7: private void makeNoise() {
+    8: quack(); // private access is ok
+    9: } }
+
+Now we add another class:
+
+    1: package pond.duck;
+    2: public class BadDuckling {
+    3: public void makeNoise() {
+    4: FatherDuck duck = new FatherDuck();
+    5: duck.quack(); // DOES NOT COMPILE
+    6: System.out.println(duck.noise); // DOES NOT COMPILE
+    7: } }
+
+
+### Default (Package Private) Access
+
+When there is no access modifier, Java uses the default, which is package private access. This means that the member is “private” to classes in the same package. In other words, only classes in the package may access it.
+
+    package pond.duck;
+    public class MotherDuck {
+    String noise = "quack";
+    void quack() {
+    System.out.println(noise); // default access is ok
+    }
+    private void makeNoise() {
+    quack(); // default access is ok
+    } }
+
+MotherDuck can call quack() and refer to noise. After all, members in the same class
+are certainly in the same package. 
+
+The big difference is MotherDuck lets other classes in the same package access members (due to being package private) whereas FatherDuck doesn’t (due to being private)
+
+    package pond.duck;
+    public class GoodDuckling {
+        public void makeNoise() {
+        MotherDuck duck = new MotherDuck();
+        duck.quack(); // default access
+        System.out.println(duck.noise); // default access
+    } }
+
+Notice that all the classes we’ve covered so far are in the same package pond.duck. This
+allows default (package private) access to work
+
+    package pond.swan;
+    import pond.duck.MotherDuck; // import another package
+    public class BadCygnet {
+        public void makeNoise() {
+        MotherDuck duck = new MotherDuck();
+        duck.quack(); // DOES NOT COMPILE
+        System.out.println(duck.noise); // DOES NOT COMPILE
+    } }
+
+Remember that when there is no access modifier, only classes in the same package can
+access it.
+
+### Protected Access
+
+Protected access allows everything that default (package private) access allows and more.
+The protected access modifier adds the ability to access members of a parent class
+
+First, we create a Bird class and give protected access to its members:
+
+    package pond.shore;
+    public class Bird {
+    protected String text = "floating"; // protected access
+    protected void floatInWater() { // protected access
+    System.out.println(text);
+    } }
+
+Next we create a subclass:
+
+    package pond.goose;
+    import pond.shore.Bird; // in a different package
+    public class Gosling extends Bird { // extends means create subclass
+    public void swim() {
+    floatInWater(); // calling protected member
+    System.out.println(text); // calling protected member
+    } }
+
+This is a very simple subclass. It extends the Bird class. Extending means creating a
+subclass that has access to any protected or public members of the parent class
+
+Remember that protected also gives us access to everything that default access does.
+This means that a class in the same package as Bird can access its protected members.
+
+    package pond.shore; // same package as Bird
+    public class BirdWatcher {
+    public void watchBird() {
+    Bird bird = new Bird();
+    bird.floatInWater(); // calling protected member
+    System.out.println(bird.text); // calling protected member
+    } }
+
+Since Bird and BirdWatcher are in the same package, BirdWatcher can access members
+of the bird variable.
+
+Now let’s try the same thing from a different package:
+
+    package pond.inland;
+    import pond.shore.Bird; // different package than Bird
+    public class BirdWatcherFromAfar {
+    public void watchBird() {
+    Bird bird = new Bird();
+    bird.floatInWater(); // DOES NOT COMPILE
+    System.out.println(bird.text); // DOES NOT COMPILE
+    } }
+
+BirdWatcherFromAfar is not in the same package as Bird and it doesn’t inherit from
+Bird. This means that it is not allowed to access protected members of Bird.
+
+### Public Access
+
+Protected access was a tough concept. Luckily, the last type of access modifier is easy: public means anyone can access the member from anywhere.
+
+    package pond.duck;
+    public class DuckTeacher {
+    public String name = "helpful"; // public access
+    public void swim() { // public access
+    System.out.println("swim");
+    } }
+
+DuckTeacher allows access to any class that wants it. Now we can try it out:
+
+    package pond.goose;
+    import pond.duck.DuckTeacher;
+    public class LostDuckling {
+    public void swim() {
+    DuckTeacher teacher = new DuckTeacher();
+    teacher.swim(); // allowed
+    System.out.println("Thanks" + teacher.name); // allowed
+    } }
+
+LostDuckling is able to refer to swim() and name on DuckTeacher because they are public.
+
+## Designing Static Methods and Fields
+
+Except for the main() method, we’ve been looking at instance methods. Static methods
+don’t require an instance of the class. They are shared among all users of the class. You can
+think of statics as being a member of the single class object that exist independently of any
+instances of that class.
+
+We have seen one static method since begining The main() method is a static method.
+That means you can call it by the classname.
+
+    public class Koala {
+        public static int count = 0; // static variable
+        public static void main(String[] args) { // static method
+            System.out.println(count);
+        }
+    }
+
+We said that the JVM basically calls Koala.main() to get the program started. You can
+do this too. We can have a KoalaTester that does nothing but call the main() method.
+
+
+    public class KoalaTester {
+        public static void main(String[] args) {
+            Koala.main(new String[0]); // call static method
+        }
+    }
+
+The purpose of all these examples is to show that main() can be called just like any other static method
+
+In addition to main() methods, static methods have two main purposes:
+
+For utility or helper methods that don’t require any object state. Since there is no need
+to access instance variables, having static methods eliminates the need for the caller to
+instantiate the object just to call the method.
+
+For state that is shared by all instances of a class, like a counter. All instances must
+share the same state. Methods that merely use that state should be static as well.
+
+### Calling a Static Variable or Method
+
+Usually, accessing a static member is easy. You just put the classname before the method or
+variable and you are done. For example:
+
+    System.out.println(Koala.count);
+    Koala.main(new String[0]);
+
+Both of these are nice and easy. There is one rule that is trickier. You can use an instance
+of the object to call a static method. The compiler checks for the type of the reference and
+uses that instead of the object
+
+    5: Koala k = new Koala();
+    6: System.out.println(k.count); // k is a Koala
+    7: k = null;
+    8: System.out.println(k.count); // k is still a Koala
+
+Believe it or not, this code outputs 0 twice. Line 6 sees that k is a Koala and count is a
+static variable, so it reads that static variable. 
+Line 8 does the same thing. Java doesn’t care that k happens to be null. 
+Since we are looking for a static, it doesn’t matter.
+
+### Static vs. Instance
+
+A static member cannot call an instance member. This shouldn’t be a surprise since static doesn’t require any instances of the class to be around.
+
+The following is a common mistake programmers to make
+
+    public class Static {
+    private String name = "Static class";
+    public static void first() { }
+    public static void second() { }
+    public void third() { System.out.println(name); }
+    public static void main(String args[]) {
+    first();
+    second();
+    third(); // DOES NOT COMPILE
+    } }
+
+The compiler will give you an error about making a static reference to a nonstatic
+method. If we fi x this by adding static to third(), we create a new problem. Can you
+figure out what it is?
+
+All this does is move the problem. Now, third() is referring to nonstatic name. Adding
+static to name as well would solve the problem. Another solution would have been to call
+third as an instance method—for example, new Static().third();.
+
+A static method or instance method can call a static method because static methods don’t require an object to use. Only an instance method can call another instance method on the same class without using a reference variable, because instance methods do require an object.
+
+    public class Counter {
+    private static int count;
+    public Counter() { count++; }
+        public static void main(String[] args) {
+            Counter c1 = new Counter();
+            Counter c2 = new Counter();
+            Counter c3 = new Counter();
+            System.out.println(count); // 3
+        }
+    }
+
+Each time the constructor gets called, it increments count by 1. This example relies on
+the fact that static (and instance) variables are automatically initialized to the default value
+for that type, which is 0 for int.
+
+### Static Variables
+
+Some static variables are meant to change as the program runs. Counters are a common
+example of this. We want the count to increase over time. Just as with instance variables,
+you can initialize a static variable on the line it is declared:
+
+    public class Initializers {
+    private static int
+    counter = 0; // initialization
+    }
+
+Other static variables are meant to never change during the program. This type of vari-
+able is known as a constant. It uses the final modifier to ensure the variable never changes.
+static final constants use a different naming convention than other variables. They use
+all uppercase letters with underscores between “words.” For example:
+
+    public class Initializers {
+    private static final int NUM_BUCKETS = 45;
+    public static void main(String[] args) {
+    NUM_BUCKETS = 5; // DOES NOT COMPILE
+    } }
+
+The compiler will make sure that you do not accidentally try to update a fi nal variable.
+
+This can get interesting. Do you think the following compiles?
+
+    private static final ArrayList<String> values = new ArrayList<>();
+    public static void main(String[] args) {
+    values.add("changed");
+    }
+
+It actually does compile. values is a reference variable. We are allowed to call methods
+on reference variables. All the compiler can do is check that we don’t try to reassign the
+final values to point to a different object
+
+### Static Initialization
+
+we covered instance initializers that looked like unnamed methods. Just code
+inside braces. Static initializers look similar. They add the static keyword to specify they
+should be run when the class is first used. For example:
+
+    private static final int NUM_SECONDS_PER_HOUR;
+    static {
+        int numSecondsPerMinute = 60;
+        int numMinutesPerHour = 60;
+        NUM_SECONDS_PER_HOUR = numSecondsPerMinute * numMinutesPerHour;
+    }
+
+The static initializer runs when the class is fi rst used. The statements in it run
+and assign any static variables as needed. There is something interesting about
+this example. We just got through saying that fi nal variables aren’t allowed to
+be reassigned. The key here is that the static initializer is the fi rst assignment.
+And since it occurs up front, it is okay
+
+
+    14: private static int one;
+    15: private static final int two;
+    16: private static final int three = 3;
+    17: private static final int four; // DOES NOT COMPILE due to never initialize  
+    18: static {
+    19: one = 1;
+    20: two = 2;
+    21: three = 3; // DOES NOT COMPILE due to second attempt
+    22: two = 4; // DOES NOT COMPILE due to second attempt
+    23: }
+
+Static Imports
+
+you saw that we could import a specific class or all the classes in a package
+
+    import java.util.ArrayList;
+    import java.util.*;
+    We could use this technique to import:
+    import java.util.List;
+    import java.util.Arrays;
+    public class Imports {
+        public static void main(String[] args) {
+            List<String> list = Arrays.asList("one", "two");
+        }
+    }
+
+Imports are convenient because you don’t need to specify where each class comes
+from each time you use it. There is another type of import called a static import. Regular
+imports are for importing classes. Static imports are for importing static members of
+classes
+
+The previous method has one static method call: Arrays.asList. Rewriting the code to
+use a static import yields the following:
+
+    import java.util.List;
+    import static java.util.Arrays.asList; // static import
+    public class StaticImports {
+    public static void main(String[] args) {
+    List<String> list = asList("one", "two"); // no Arrays.
+    } }
+
+in this example, we are specifically importing the asList method. This means that any
+time we refer to asList in the class, it will call Arrays.asList().
+
+An interesting case is what would happen if we created an asList method in our
+StaticImports class. Java would give it preference over the imported one and the method
+we coded would be used.
+
+There’s only one more scenario with static imports.  you learned that
+importing two classes with the same name gives a compiler error. This is true of static
+imports as well. The compiler will complain if you try to explicitly do a static import of
+two methods with the same name or two static variables with the same name. For example:
+
+import static statics.A.TYPE;
+import static statics.B.TYPE; // DOES NOT COMPILE
+
+## Passing Data Among Methods
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
