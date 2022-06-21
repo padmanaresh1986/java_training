@@ -546,6 +546,197 @@ import static statics.B.TYPE; // DOES NOT COMPILE
 
 ## Passing Data Among Methods
 
+Java is a “pass-by-value” language. This means that a copy of the variable is made and the
+method receives that copy. Assignments made in the method do not affect the caller. Let’s
+look at an example:
+
+    2: public static void main(String[] args) {
+    3: int num = 4;
+    4: newNumber(5);
+    5: System.out.println(num); // 4
+    6: }
+    7: public static void newNumber(int num) {
+    8: num = 8;
+    9: }
+
+On line 3, num is assigned the value of 4. On line 4, we call a method. On line 8, the num
+parameter in the method gets set to 8. Although this parameter has the same name as the
+variable on line 3,  The variable on line 3 never changes because no assignments are made to it
+
+let’s try an example with a reference type.
+
+    public static void main(String[] args) {
+    String name = "Webby";
+    speak(name);
+    System.out.println(name);
+    }
+    public static void speak(String name) {
+    name = "Sparky";
+    }
+
+The correct answer is Webby. Just as in the primitive example, the variable assignment is
+only to the method parameter and doesn’t affect the caller.
+
+    public static void main(String[] args) {
+    StringBuilder name = new StringBuilder();
+    speak(name);
+    System.out.println(name); // Webby
+    }
+    public static void speak(StringBuilder s) {
+    s.append("Webby");
+    }
+
+In this case, the output is Webby because the method merely calls a method on the
+parameter. It doesn’t reassign name to a different object
+
+Getting data back from a method is easier. A copy is made of the primitive or reference
+and returned from the method. Most of the time, this returned value is used. For example,
+it might be stored in a variable. If the returned value is not used, the result is ignored.
+
+    1: public class ReturningValues {
+    2: public static void main(String[] args) {
+    3: int number = 1; // 1
+    4: String letters = "abc"; // abc
+    5: number(number); // 1
+    6: letters = letters(letters); // abcd
+    7: System.out.println(number + letters); // 1abcd
+    8: }
+    9: public static int number(int number) {
+    10: number++;
+    11: return number;
+    12: }
+    13: public static String letters(String letters) {
+    14: letters += "d";
+    15: return letters;
+    16: }
+    17: }
+
+### Overloading Methods
+
+Method overloading occurs when there are different method signatures with the same name but different type parameters. We’ve been calling overloaded methods for a while. System.out.println and
+StringBuilder’s append methods provide many overloaded versions so you can pass just
+about anything to them without having to think about it. 
+
+In both of these examples, the only change was the type of the parameter. 
+
+Overloading also allows different numbers of parameters.
+
+Everything other than the method signature can vary for overloaded methods. 
+
+This means there can be different access modifiers, specifiers (like static), return types, and
+exception lists.
+
+These are all valid overloaded methods:
+
+    public void fly(int numMiles) { }
+    public void fly(short numFeet) { }
+    public boolean fly() { return false; }
+    void fly(int numMiles, short numFeet) { }
+    public void fly(short numFeet, int numMiles) throws Exception { }
+
+As you can see, we can overload by changing anything in the parameter list. We can
+have a different type, more types, or the same types in a different order. Also notice that
+the access modifier and exception list are irrelevant to overloading.
+
+Now let’s look at an example that is not valid overloading:
+
+    public void fly(int numMiles) { }
+    public int fly(int numMiles) { } // DOES NOT COMPILE
+
+This method doesn’t compile because it only differs from the original by return type.
+The parameter lists are the same so they are duplicate methods as far as Java is concerned.
+
+    public void fly(int numMiles) { }
+    public static void fly(int numMiles) { } // DOES NOT COMPILE
+
+Again, the parameter list is the same. The only difference is that one is an instance
+method and one is a static method.
+
+Calling overloaded methods is easy. You just write code and Java calls the right one. For
+example, look at these two methods:
+
+    public void fly(int numMiles) {
+        System.out.println("short");
+    }
+
+    public void fly(short numFeet) {
+        System.out.println("short");
+    }
+
+The call fly((short) 1); prints short. It looks for matching types and calls the appropriate method
+
+### Overloading and Varargs
+
+Which method do you think is called if we pass an int[]?
+
+    public void fly(int[] lengths) { }
+    public void fly(int... lengths) { } // DOES NOT COMPILE
+
+Remember that Java treats varargs as if they were an array. This means that the method signature is the same for both methods.
+
+### Autoboxing
+
+    public void fly(int numMiles) { }
+    public void fly(Integer numMiles) { }
+
+Java will match the int numMiles version. Java tries to use the most specific parameter
+list it can fi nd. When the primitive int version isn't present, it will autobox
+
+### Reference Types
+
+Given the rule about Java picking the most specific version of a method that it can, what do
+you think this code outputs?
+
+    public class ReferenceTypes {
+    public void fly(String s) {
+    System.out.print("string ");
+    }
+    public void fly(Object o) {
+    System.out.print("object ");
+    }
+    public static void main(String[] args) {
+    ReferenceTypes r = new ReferenceTypes();
+    r.fly("test");
+    r.fly(56);
+    } }
+
+The answer is "string object". The fi rst call is a String and fi nds a direct match.
+There's no reason to use the Object version when there is a nice String parameter list just
+waiting to be called. The second call looks for an int parameter list. When it doesn't fi nd
+one, it autoboxes to Integer. Since it still doesn't fi nd a match, it goes to the Object one.
+
+
+### Primitives
+
+Primitives work in a way similar to reference variables. Java tries to fi nd the most specific
+matching overloaded method. What do you think happens here?
+
+    public class Plane {
+    public void fly(int i) {
+    System.out.print("int ");
+    }
+    public void fly(long l) {
+    System.out.print("long ");
+    }
+    public static void main(String[] args) {
+    Plane p = new Plane();
+    p.fly(123);
+    p.fly(123L);
+    } }
+
+The answer is int long. The fi rst call passes an int and sees an exact match. The sec-
+ond call passes a long and also sees an exact match. If we comment out the overloaded
+method with the int parameter list, the output becomes long long. Java has no problem
+calling a larger primitive. However, it will not do so unless a better match is not found
+
+Note that Java can only accept wider types. An int can be passed to a method taking a
+long parameter. Java will not automatically convert to a narrower type. If you want to pass
+a long to a method taking an int parameter, you have to add a cast to explicitly say nar-
+rowing is okay.
+
+## Creating Constructors
+
+
 
 
 
