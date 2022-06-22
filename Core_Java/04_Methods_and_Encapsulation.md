@@ -1095,6 +1095,230 @@ ers can change their StringBuilder without affecting Mutable
 
 ## Writing Simple Lambdas
 
+Java is an object-oriented language at heart. You’ve seen plenty of objects by now. In Java
+8, the language added the ability to write code using another style. Functional program-
+ming is a way of writing code more declaratively
+
+You specify what you want to do rather than dealing with the state of objects. You focus more on expressions than loops.
+
+Functional programming uses lambda expressions to write code.
+
+A lambda expression is a block of code that gets passed around. You can think of a lambda expression as an
+anonymous method. 
+
+It has parameters and a body just like full-fledged methods do, but it doesn’t have a name like a real method
+
+a lambda expression is like a method that you can pass as if it were a variable
+
+## Lambda Example
+
+Our goal is to print out all the animals in a list according to some criteria. We’ll show you
+how to do this without lambdas to illustrate how lambdas are useful. We start out with the
+Animal class:
+
+    public class Animal {
+        private String species;
+        private boolean canHop;
+        private boolean canSwim;
+        public Animal(String speciesName, boolean hopper, boolean swimmer) {
+            species = speciesName;
+            canHop = hopper;
+            canSwim = swimmer;
+        }
+        public boolean canHop() { return canHop; }
+        public boolean canSwim() { return canSwim; }
+        public String toString() { return species; }
+    }
+
+
+    public interface CheckTrait {
+        boolean test(Animal a);
+    }
+
+The first thing we want to check is whether the Animal can hop. We provide a class that can check this:
+
+    public class CheckIfHopper implements CheckTrait {
+        public boolean test(Animal a) {
+         return a.canHop();
+        }
+    }
+
+Now we have everything that we need to write our code to fi nd the Animals that hop:
+
+    1: public class TraditionalSearch {
+    2: public static void main(String[] args) {
+    3: List<Animal> animals = new ArrayList<Animal>(); // list of animals
+    4: animals.add(new Animal("fish", false, true));
+    5: animals.add(new Animal("kangaroo", true, false));
+    6: animals.add(new Animal("rabbit", true, false));
+    7: animals.add(new Animal("turtle", false, true));
+    8:
+    9: print(animals, new CheckIfHopper()); // pass class that does check
+    10: }
+    11: private static void print(List<Animal> animals, CheckTrait checker) {
+    12: for (Animal animal : animals) {
+    13: if (checker.test(animal)) // the general check
+    14: System.out.print(animal + " ");
+    15: }
+    16: System.out.println();
+    17: }
+    18: }
+
+Now what happens if we want to print the Animals that swim? Sigh. We need to write another class CheckIfSwims.
+Granted, it is only a few lines. Then we need to add a new line under line 9 that instantiates that class. 
+That’s two things just to do another check.
+
+Why can’t we just specify the logic we care about right here? Turns out that we can with lambda expressions
+
+    print(animals, a -> a.canHop());
+
+It doesn’t take much imagination to figure how we would add logic to get the Animals
+that can swim. We only have to add one line of code—no need for an extra class to do
+something simple. Here’s that other line:
+
+    print(animals, a -> a.canSwim());
+
+How about Animals that cannot swim?
+
+    print(animals, a -> ! a.canSwim());
+
+The point here is that it is really easy to write code that uses lambdas once you get the
+basics in place. This code uses a concept called deferred execution. Deferred execution
+means that code is specified now but will run later. In this case, later is when the print()
+method calls it.
+
+
+### Lambda Syntax
+
+One of the simplest lambda expressions you can write is the one you just saw:
+
+    a -> a.canHop();
+
+This means that Java should call a method with an Animal parameter that returns a
+boolean value that’s the result of a.canHop(). We know all this because we wrote the code.
+But how does Java know?
+
+Java replies on context when figuring out what lambda expressions mean. We are pass-
+ing this lambda as the second parameter of the print() method. That method expects a
+CheckTrait as the second parameter. Since we are passing a lambda instead, Java tries to
+map our lambda to that interface:
+
+boolean test(Animal a);
+
+Since that interface’s method takes an Animal, that means the lambda parameter has to
+be an Animal. And since that interface’s method returns a boolean, we know the lambda
+returns a boolean.
+
+The syntax of lambdas is tricky because many parts are optional. These two lines do the
+exact same thing:
+
+    a -> a.canHop()
+
+    (Animal a) -> { return a.canHop(); }
+
+Let’s look at what is going on here
+
+Specify a single parameter with the name a
+
+The arrow operator to separate the parameter and body
+
+A body that calls a single method and returns the result of that method
+
+Specify a single parameter with the name a and stating the type is Animal
+
+The arrow operator to separate the parameter and body
+
+A body that has one or more lines of code, including a semicolon and a return statement
+
+![Alt text](https://github.com/padmanaresh1986/java_training/blob/main/Core_Java/images/2022-06-22_09-39-50.png)
+
+![Alt text](https://github.com/padmanaresh1986/java_training/blob/main/Core_Java/images/2022-06-22_09-40-15.png)
+
+Let’s look at some examples of valid lambda
+
+    3: print(() -> true); // 0 parameters
+    4: print(a -> a.startsWith("test")); // 1 parameter
+    5: print((String a) -> a.startsWith("test")); // 1 parameter
+    6: print((a, b) -> a.startsWith("test")); // 2 parameters
+    7: print((String a, String b) -> a.startsWith("test")); // 2 parameters
+
+    print(a, b -> a.startsWith("test")); // DOES NOT COMPILE missing paranthasis
+    print(a -> { a.startsWith("test"); }); // DOES NOT COMPILE missing return
+    print(a -> { return a.startsWith("test") }); // DOES NOT COMPILE , Missing semicolon
+
+### Predicates
+
+In our earlier example, we created an interface with one method:
+boolean test(Animal a);
+
+Lambdas work with interfaces that have only one method. These are called functional
+interfaces—interfaces that can be used with functional programming. 
+
+You can imagine that we’d have to create lots of interfaces like this to use lambdas. We
+want to test Animals and Strings and Plants and anything else that we come across.
+
+Luckily, Java recognizes that this is a common problem and provides such an interface
+for us. It’s in the package java.util.function and the gist of it is as follows:
+
+    public interface Predicate<T> {
+        boolean test(T t);
+    }
+
+This means we don’t need our own interface anymore and can put everything
+related to our search in one class:
+
+
+    1: import java.util.*;
+    2: import java.util.function.*;
+    3: public class PredicateSearch {
+    4: public static void main(String[] args) {
+    5: List<Animal> animals = new ArrayList<Animal>();
+    6: animals.add(new Animal("fish", false, true));
+    7:
+    8: print(animals, a -> a.canHop());
+    9: }
+    10: private static void print(List<Animal> animals, Predicate<Animal> checker) {
+    11: for (Animal animal : animals) {
+    12: if (checker.test(animal))
+    13: System.out.print(animal + " ");
+    14: }
+    15: System.out.println();
+    16: }
+    17: }
+
+Java 8 even integrated the Predicate interface into some existing classes. There is only
+one you need to know for the exam. ArrayList declares a removeIf() method that takes a
+Predicate.
+
+    3: List<String> bunnies = new ArrayList<>();
+    4: bunnies.add("long ear");
+    5: bunnies.add("floppy");
+    6: bunnies.add("hoppy");
+    7: System.out.println(bunnies); // [long ear, floppy, hoppy]
+    8: bunnies.removeIf(s -> s.charAt(0) != 'h');
+    9: System.out.println(bunnies); // [hoppy]
+
+Line 8 takes care of everything for us. It defines a predicate that takes a String and
+returns a boolean. The removeIf() method does the rest.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
