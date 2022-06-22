@@ -736,6 +736,372 @@ rowing is okay.
 
 ## Creating Constructors
 
+a constructor is a special method that matches the name of the class and has no return type. Here’s an example:
+
+    public class Bunny {
+        public Bunny() {
+            System.out.println("constructor");
+        }
+    }
+
+The name of the constructor, Bunny, matches the name of the class, Bunny, and there is no return type, not even void. That makes this a constructor
+
+Not Valid Construcots
+
+    public bunny() { } // DOES NOT COMPILE
+    public void Bunny() { } // HAS RETURN TYPE
+
+Constructors are used when creating a new object. This process is called instantiation
+because it creates a new instance of the class. A constructor is called when we write new
+followed by the name of the class we want to instantiate. For example:
+
+    new Bunny()
+
+When Java sees the new keyword, it allocates memory for the new object. Java also looks
+for a constructor and calls it.
+
+A constructor is typically used to initialize instance variables. The this keyword tells
+Java you want to reference an instance variable. 
+
+Most of the time, this is optional. The problem is that sometimes there are two variables with the same name. In a constructor, one is a parameter and one is an instance variable. 
+
+If you don’t say otherwise, Java gives
+you the one with the most granular scope, which is the parameter. Using this.name tells
+Java you want the instance variable.
+
+    1: public class Bunny {
+    2: private String color;
+    3: public Bunny(String color) {
+    4: this.color = color;
+    5: } }
+
+On line 4, we assign the parameter color to the instance variable color. 
+
+The right side of the assignment refers to the parameter because we don’t specify anything
+special. The left side of the assignment uses this to tell Java we want it to use the
+instance variable.
+
+    1: public class Bunny {
+    2: private String color;
+    3: private int height;
+    4: private int length;
+    5: public Bunny(int length, int theHeight) {
+    6: length = this.length; // backwards – no good!
+    7: height = theHeight; // fine because a different name
+    8: this.color = "white"; // fine, but redundant
+    9: }
+    10: public static void main(String[] args) {
+    11: Bunny b = new Bunny(1, 2);
+    12: System.out.println(b.length + " " + b.height + " " + b.color);
+    13: } }
+
+### Default Constructor
+
+Every class in Java has a constructor whether you code one or not. If you don’t include any
+constructors in the class, Java will create one for you without any parameters.
+
+This Java-created constructor is called the default constructor. Sometimes we call it the
+default no-arguments constructor for clarity. Here’s an example:
+
+    public class Rabbit {
+        public static void main(String[] args) {
+            Rabbit rabbit = new Rabbit(); // Calls default constructor
+        }
+    }
+
+In the Rabbit class, Java sees no constructor was coded and creates one. This default
+constructor is equivalent to typing this:
+
+public Rabbit() {}
+
+Remember that a default constructor is only supplied if there are no constructors
+present. Which of these classes do you think has a default constructor?
+
+    class Rabbit1 {
+    }
+
+    class Rabbit2 {
+        public Rabbit2() { }
+    }
+
+    class Rabbit3 {
+        public Rabbit3(boolean b) { }
+    }
+
+    class Rabbit4 {
+        private Rabbit4() { }
+    }
+
+Only Rabbit1 gets a default no-argument constructor. It doesn't have a constructor
+coded so Java generates a default no-argument constructor
+
+    1: public class RabbitsMultiply {
+    2: public static void main(String[] args) {
+    3: Rabbit1 r1 = new Rabbit1();
+    4: Rabbit2 r2 = new Rabbit2();
+    5: Rabbit3 r3 = new Rabbit3(true);
+    6: Rabbit4 r4 = new Rabbit4(); // DOES NOT COMPILE
+    7: } }
+
+### Overloading Constructors
+
+Up to now, you’ve only seen one constructor per class. You can have multiple constructors
+in the same class as long as they have different method signatures
+
+With constructors, the name is always the same since it has to be the same as the name of the class. This means constructors must have different parameters in order to be overloaded
+
+    public class Hamster {
+    private String color;
+    private int weight;
+        public Hamster(int weight) { // first constructor
+            this.weight = weight;
+            color = "brown";
+        }
+        public Hamster(int weight, String color) { // second constructor
+            this.weight = weight;
+            this.color = color;
+        }
+    }
+
+One of the constructors takes a single int parameter. The other takes an int and a
+String. These parameter lists are different, so the constructors are successfully overloaded.
+
+What we really want is for the fi rst constructor to call the second constructor with
+two parameters. You might be tempted to write this
+
+    public Hamster(int weight) {
+        Hamster(weight, "brown"); // DOES NOT COMPILE
+    }
+
+This will not work. Constructors can be called only by writing new before the name of the
+constructor. They are not like normal methods that you can just call. What happens if we
+stick new before the constructor name?
+
+    public Hamster(int weight) {
+        new Hamster(weight, "brown"); // Compiles but does not do what we want
+    }
+
+Java provides a solution: this—yes, the same keyword we used to refer to instance variables. 
+
+When this is used as if it were a method, Java calls another constructor on the same instance of the class.
+
+    public Hamster(int weight) {
+        this(weight, "brown");
+    }
+
+this() has one special rule you need to know. If you choose to call it, the this() call
+must be the fi rst noncommented statement in the constructor.
+
+    3: public Hamster(int weight) {
+    4: System.out.println("in constructor");
+    5: // ready to call this
+    6: this(weight, "brown"); // DOES NOT COMPILE
+    7: }
+
+### Constructor Chaining
+
+Overloaded constructors often call each other. One common technique is to have each
+constructor add one parameter until getting to the constructor that does all the work.
+This approach is called constructor chaining
+
+    public class Mouse {
+        private int numTeeth;
+        private int numWhiskers;
+        private int weight;
+        public Mouse(int weight) {
+            this(weight, 16); // calls constructor with 2 parameters
+        }
+        public Mouse(int weight, int numTeeth) {
+            this(weight, numTeeth, 6); // calls constructor with 3 parameters
+        }
+        public Mouse(int weight, int numTeeth, int numWhiskers) {
+            this.weight = weight;
+            this.numTeeth = numTeeth;
+            this.numWhiskers = numWhiskers;
+        }
+        public void print() {
+            System.out.println(weight + " " + numTeeth + " " + numWhiskers);
+        }
+        public static void main(String[] args) {
+            Mouse mouse = new Mouse(15);
+            mouse.print();
+        }
+    }
+
+### Final Fields
+
+final instance variables must be assigned a value exactly once. 
+We saw this happen in the line of the declaration and in an instance initializer. 
+There is one more location this assignment can be done: in the constructor.
+
+    public class MouseHouse {
+        private final int volume;
+        private final String name = "The Mouse House";
+        public MouseHouse(int length, int width, int height) {
+            volume = length * width * height;
+        }
+    }
+
+The constructor is part of the initialization process, so it is allowed to assign final
+instance variables in it. By the time the constructor completes, all final instance variables
+must have been set.
+
+
+### Order of Initialization
+
+1. If there is a superclass, initialize it first 
+2. Static variable declarations and static initializers in the order they appear in the file.
+3. Instance variable declarations and instance initializers in the order they appear in the file.
+4. The constructor.
+
+
+    1: public class InitializationOrderSimple {
+    2: private String name = "Torchie";
+    3: { System.out.println(name); }
+    4: private static int COUNT = 0;
+    5: static { System.out.println(COUNT); }
+    6: static { COUNT += 10; System.out.println(COUNT); }
+    7: public InitializationOrderSimple() {
+    8: System.out.println("constructor");
+    9: } }
+
+    1: public class CallInitializationOrderSimple {
+    2: public static void main(String[] args) {
+    3: InitializationOrderSimple init = new InitializationOrderSimple();
+    4: } }
+
+    The output is:
+    0
+    10
+    Torchie
+    constructor
+
+### Encapsulating Data
+
+    public class Swan {
+        int numberEggs; // instance variable
+    }
+
+Since there is default (package private) access, that means any class in the package can set numberEggs. 
+
+We no longer have control of what gets set in our own class. A caller could even write this:
+
+    mother.numberEggs = -1;
+
+This is clearly no good. We do not want the mother Swan to have a negative number of eggs!
+
+Encapsulation to the rescue. Encapsulation means we set up the class so only methods
+in the class with the variables can refer to the instance variables. Callers are required to use
+these methods. Let’s take a look at our newly encapsulated Swan class:
+
+    1: public class Swan {
+    2: private int numberEggs; // private
+    3: public int getNumberEggs() { // getter
+    4: return numberEggs;
+    5: }
+    6: public void setNumberEggs(int numberEggs) { // setter
+    7: if (numberEggs >= 0) // guard condition
+    8: this.numberEggs = numberEggs;
+    9: } }
+
+Java defines a naming convention that is used in JavaBeans. JavaBeans are reusable
+software components. JavaBeans call an instance variable a property. 
+
+The only thing you need to know about JavaBeans  is the naming conventions listed below
+
+| Rule     | Example        | 
+| ----------- | ----------- |
+| Properties are private.      | private int numEggs;    |
+| Getter methods begin with is if the property is a boolean.    |  public boolean isHappy() { return happy;}  |
+| Getter methods begin with get if the property is not a boolean.   |  public int getNumEggs() { return numEggs;} |
+| Setter methods begin with set. | public void setHappy(boolean happy) {this.happy = happy; }|
+| The method name must have a prefix of set/get/is, followed by the first letter of the property in uppercase followed by the rest of the property name | public void setNumEggs(int num) {numEggs = num;} |
+
+
+From the last example , you noticed that you can name the method parameter to set anything you want. Only the method name and property name have naming conventions here.
+
+    12: private boolean playing;
+    13: private String name;
+    14: public boolean getPlaying() { return playing; }
+    15: public boolean isPlaying() { return playing; }
+    16: public String name() { return name; }
+    17: public void updateName(String n) { name = n; }
+    18: public void setname(String n) { name = n; }
+
+### Creating Immutable Classes
+
+Encapsulating data is helpful because it prevents callers from making uncontrolled changes
+to your class. Another common technique is making classes immutable so they cannot be
+changed at all.
+
+Immutable classes are helpful because you know they will always be the same. You can
+pass them around your application with a guarantee that the caller didn’t change anything.
+This helps make programs easier to maintain. It also helps with performance by limiting
+the number of copies
+
+    public class ImmutableSwan {
+    private int numberEggs;
+        public ImmutableSwan(int numberEggs) {
+            this.numberEggs = numberEggs;
+        }
+        public int getNumberEggs() {
+             return numberEggs;
+        } 
+    }
+
+In this example, we don't have a setter. We do have a constructor that allows a value to
+be set. Remember, immutable is only measured after the object is constructed. Immutable
+classes are allowed to have values. They just can't change after instantiation.
+
+
+### Return Types in Immutable Classes
+
+When you are writing an immutable class, be careful about the return types. On the
+surface, this class appears to be immutable since there is no setter:
+
+    public class NotImmutable {
+    private StringBuilder builder;
+        public NotImmutable(StringBuilder b) {
+            builder = b;
+        }
+        public StringBuilder getBuilder() {
+             return builder;
+        } 
+    }
+
+    StringBuilder sb = new StringBuilder("initial");
+    NotImmutable problem = new NotImmutable(sb);
+    sb.append(" added");
+    StringBuilder gotBuilder = problem.getBuilder();
+    gotBuilder.append(" more");
+    System.out.println(problem.getBuilder());
+
+This outputs "initial added more"—clearly not what we were intending. The problem
+is that we are just passing the same StringBuilder all over. The caller has a reference since
+it was passed to the constructor. Anyone who calls the getter gets a reference too.
+A solution is to make a copy of the mutable object. This is called a defensive copy.
+
+    public Mutable(StringBuilder b) {
+    builder = new StringBuilder(b);
+    }
+
+    public StringBuilder getBuilder() {
+    return new StringBuilder(builder);
+    }
+
+Now the caller can make changes to the initial sb object and it is fine. Mutable no longer
+cares about that object after the constructor gets run. The same goes for the getter: call-
+ers can change their StringBuilder without affecting Mutable
+
+## Writing Simple Lambdas
+
+
+
+
+
+
+
+
 
 
 
