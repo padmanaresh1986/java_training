@@ -1213,6 +1213,273 @@ of the code resolves the issue with a reference to the interface name Hop:
 
 ## Understanding Polymorphism
 
+Java supports polymorphism, the property of an object to take on many different forms
+
+Java object may be accessed using a reference with the same type
+as the object, a reference that is a superclass of the object, or a reference that defi nes an
+interface the object implements, either directly or through a superclass
+
+a cast is not required if the object is being reassigned to a super type or interface of the object.
+
+    public class Primate {
+        public boolean hasHair() {
+        return true;
+        }
+    }
+
+    public interface HasTail {
+         public boolean isTailStriped();
+    }
+
+    public class Lemur extends Primate implements HasTail {
+        public boolean isTailStriped() {
+            return false;
+        }
+        public int age = 10;
+        public static void main(String[] args) {
+            Lemur lemur = new Lemur();
+            System.out.println(lemur.age);
+            HasTail hasTail = lemur;
+            System.out.println(hasTail.isTailStriped());
+            Primate primate = lemur;
+            System.out.println(primate.hasHair());
+        }
+    }
+
+    10
+    false
+    true
+
+The most important thing to note about this example is that only one object, Lemur, is
+created and referenced. The ability of an instance of Lemur to be passed as an instance of an
+interface it implements, HasTail, as well as an instance of one of its superclasses, Primate,
+is the nature of polymorphism.
+
+Once the object has been assigned a new reference type, only the methods and variables
+available to that reference type are callable on the object without an explicit cast. For
+example, the following snippets of code will not compile:
+
+    HasTail hasTail = lemur;
+    System.out.println(hasTail.age); // DOES NOT COMPILE
+    Primate primate = lemur;
+    System.out.println(primate.isTailStriped()); // DOES NOT COMPILE
+
+### Object vs. Reference
+
+In Java, all objects are accessed by reference, so as a developer you never have direct access
+to the object itself. Conceptually, though, you should consider the object as the entity that
+exists in memory, allocated by the Java runtime environment. Regardless of the type of the
+reference you have for the object in memory, the object itself doesn’t change
+
+    Lemur lemur = new Lemur();
+    Object lemurAsObject = lemur;
+
+Even though the Lemur object has been assigned a reference with a different type, the
+object itself has not changed and still exists as a Lemur object in memory. What has changed,
+then, is our ability to access methods within the Lemur class with the lemurAsObject refer-
+ence
+
+We can summarize this principle with the following two rules:
+
+1. The type of the object determines which properties exist within the object in memory.
+
+2. The type of the reference to the object determines which methods and variables are
+accessible to the Java program
+
+
+![Alt text](https://github.com/padmanaresh1986/java_training/blob/main/Core_Java/images/2022-06-24_21-40-13.png)
+
+
+### Casting Objects
+
+In the previous example, we created a single instance of a Lemur object and accessed it
+via superclass and interface references. Once we changed the reference type, though,
+we lost access to more specific methods defi ned in the subclass that still exist within the
+object. We can reclaim those references by casting the object back to the specifi c sub-
+class it came from:
+
+    Primate primate = lemur;
+    Lemur lemur2 = primate; // DOES NOT COMPILE
+
+    Lemur lemur3 = (Lemur)primate;
+    System.out.println(lemur3.age);
+
+Here are some basic rules to keep in mind when casting variables:
+
+1. Casting an object from a subclass to a superclass doesn’t require an explicit cast.
+
+2. Casting an object from a superclass to a subclass requires an explicit cast.
+
+3. The compiler will not allow casts to unrelated types.
+
+4. Even when the code compiles without issue, an exception may be thrown at runtime if
+the object being cast is not actually an instance of that class.
+
+    public class Bird {}
+
+    public class Fish {
+    public static void main(String[] args) {
+        Fish fish = new Fish();
+        Bird bird = (Bird)fish; // DOES NOT COMPILE
+        }
+    }
+
+Casting is not without its limitations. Even though two classes share a related hierar-
+chy, that doesn’t mean an instance of one can automatically be cast to another. Here’s an
+example
+
+    public class Rodent {
+    }
+
+    public class Capybara extends Rodent {
+        public static void main(String[] args) {
+        Rodent rodent = new Rodent();
+        Capybara capybara = (Capybara)rodent; // Throws ClassCastException at runtime
+        }
+    }
+
+This code creates an instance of Rodent and then tries to cast it to a subclass of
+Rodent, Capybara. Although this code will compile without issue, it will throw a
+ClassCastException at runtime since the object being referenced is not an instance of the
+Capybara class
+
+
+### Virtual Methods
+
+The most important feature of polymorphism—and one of the primary reasons we have
+class structure at all—is to support virtual methods. 
+
+A virtual method is a method in which
+the specific implementation is not determined until runtime. In fact, all non-fi nal, non-
+static, and non-private Java methods are considered virtual methods
+
+since any of them cannbe overridden at runtime. What makes a virtual method special in Java is that if you call a method on an object that overrides a method, you get the overridden method, even if the
+call to the method is on a parent reference or within the parent class.
+
+    public class Bird {
+        public String getName() {
+            return "Unknown";
+        }
+        public void displayInformation() {
+            System.out.println("The bird name is: "+getName());
+        }
+    }
+
+    public class Peacock extends Bird {
+        public String getName() {
+            return "Peacock";
+        }
+        public static void main(String[] args) {
+            Bird bird = new Peacock();
+            bird.displayInformation();
+        }
+    }
+
+
+This code compiles and executes without issue and outputs the following:
+The bird name is: Peacock
+
+
+As you saw in similar examples in the section “Overriding a Method,” the method
+getName() is overridden in the child class Peacock. More importantly, though, the value of
+the getName() method at runtime in the displayInformation() method is replaced with
+the value of the implementation in the subclass Peacock.
+
+### Polymorphic Parameters
+
+One of the most useful applications of polymorphism is the ability to pass instances of
+a subclass or interface to a method.
+
+    public class Reptile {
+        public String getName() {
+            return "Reptile";
+        }
+    }
+
+    public class Alligator extends Reptile {
+        public String getName() {
+            return "Alligator";
+        }
+    }
+
+    public class Crocodile extends Reptile {
+        public String getName() {
+            return "Crocodile";
+        }
+    }
+
+    public class ZooWorker {
+        public static void feed(Reptile reptile) {
+            System.out.println("Feeding reptile "+reptile.getName());
+        }
+        public static void main(String[] args) {
+            feed(new Alligator());
+            feed(new Crocodile());
+            feed(new Reptile());
+        }
+    }
+
+This code compiles and executes without issue, yielding the following output:
+Feeding: Alligator
+Feeding: Crocodile
+Feeding: Reptile
+
+### Polymorphism and Method Overriding
+
+The fi rst rule is that an overridden method must be at least as accessible as the method it
+is overriding. Let’s assume this rule is not necessary and consider the following example:
+
+    public class Animal {
+        public String getName() {
+            return "Animal";
+        }
+    }
+
+    public class Gorilla extends Animal {
+        protected String getName() { // DOES NOT COMPILE
+            return "Gorilla";
+        }
+    }
+
+    public class ZooKeeper {
+        public static void main(String[] args) {
+            Animal animal = new Gorilla();
+            System.out.println(animal.getName());
+        }
+    }
+
+As you can see, this example creates an ambiguity problem in the ZooKeeper class. 
+The reference animal.getName() is allowed because the method is public in the Animal class,
+but due to polymorphism, the Gorilla object itself has been overridden with a less acces-
+sible version, not available to the ZooKeeper class. This creates a contradiction in that the
+compiler should not allow access to this method,but because it is being referenced as an
+instance of Animal, it is allowed. Therefore, Java eliminates this contradiction, thus disal-
+lowing a method from being overridden by a less accessible version of the method.
+
+Likewise, a subclass cannot declare an overridden method with a new or broader
+exception than in the superclass, since the method may be accessed using a reference to
+the superclass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
