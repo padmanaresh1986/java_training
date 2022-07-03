@@ -300,6 +300,59 @@ are three choices:
 
 ### Using Streams
 
+A stream in Java is a sequence of data. A stream pipeline is the operations that run on a
+stream to produce a result. Think of a stream pipeline as an assembly line in a factory.
+
+Many things can happen in the assembly line stations along the way. In programming,
+these are called stream operations. 
+
+There are three parts to a stream pipeline
+
+■ Source: Where the stream comes from.
+
+■ Intermediate operations: Transforms the stream into another one. There can be as few
+or as many intermediate operations as you’d like. Since streams use lazy evaluation, the
+intermediate operations do not run until the terminal operation runs.
+
+■ Terminal operation: Actually produces a result. Since streams can be used only once,
+the stream is no longer valid after a terminal operation completes.
+
+### Creating Stream Sources
+
+In Java, the Stream interface is in the java.util.stream package. There are a few ways to
+create a finite stream:
+
+    1: Stream<String> empty = Stream.empty(); // count = 0
+    2: Stream<Integer> singleElement = Stream.of(1); // count = 1
+    3: Stream<Integer> fromArray = Stream.of(1, 2, 3); // count = 2
+
+Since streams are new in Java 8, most code that’s already written uses lists. Java provides a convenient way to convert from a list to a stream
+
+    4: List<String> list = Arrays.asList("a", "b", "c");
+    5: Stream<String> fromList = list.stream();
+    6: Stream<String> fromListParallel = list.parallelStream();
+
+    7: Stream<Double> randoms = Stream.generate(Math::random);
+    8: Stream<Integer> oddNumbers = Stream.iterate(1, n -> n + 2);
+
+Line 7 generates a stream of random numbers. How many random numbers? However
+many you need. If you call randoms.forEach(System.out::println), the program will
+print random numbers until you kill it. Later in the chapter, you’ll learn about operations
+like limit() to turn the infi nite stream into a fi nite stream.
+
+Line 8 gives you more control. iterate() takes a seed or starting value as the fi rst
+parameter. This is the fi rst element that will be part of the stream. The other parameter is a
+lambda expression that gets passed the previous value and generates the next value. As with
+the random numbers example, it will keep on producing odd numbers as long as you need
+them.
+
+
+### Using Common Terminal Operations
+
+You can perform a terminal operation without any intermediate operations but not the
+other way around. This is why we will talk about terminal operations fi rst. Reductions are
+a special type of terminal operation where all of the contents of the stream are combined
+into a single primitive or Object. For example, you might have an int or a Collection.
 
 
 
