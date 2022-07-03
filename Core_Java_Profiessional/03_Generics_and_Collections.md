@@ -1259,14 +1259,14 @@ changed in the map or null if that doesn’t apply.
 For computeIfAbsent(), the functional interface runs only when the key isn’t present or
 is null:
 
-Map<String, Integer> counts = new HashMap<>();
-counts.put("Jenny", 15);
-counts.put("Tom", null);
-Function<String, Integer> mapper = (k) -> 1;
-Integer jenny = counts.computeIfAbsent("Jenny", mapper); // 15
-Integer sam = counts.computeIfAbsent("Sam", mapper); // 1
-Integer tom = counts.computeIfAbsent("Tom", mapper); // 1
-System.out.println(counts); // {Tom=1, Jenny=15, Sam=1}
+    Map<String, Integer> counts = new HashMap<>();
+    counts.put("Jenny", 15);
+    counts.put("Tom", null);
+    Function<String, Integer> mapper = (k) -> 1;
+    Integer jenny = counts.computeIfAbsent("Jenny", mapper); // 15
+    Integer sam = counts.computeIfAbsent("Sam", mapper); // 1
+    Integer tom = counts.computeIfAbsent("Tom", mapper); // 1
+    System.out.println(counts); // {Tom=1, Jenny=15, Sam=1}
 
 Since there is no value already in the map, a Function is used instead of a
 BiFunction. Only the key is passed as input. As you can see, Jenny isn’t changed
